@@ -24,10 +24,9 @@
          @focus="handleExceptionTypeFocus(scope.row.nodeId, scope.row.detailIndex)"
          @input="handleExceptionTypeInput(scope.row.nodeId, scope.row.detailIndex, $event)"
          placeholder="最多10字" />
-        <el-button class="table-btn" v-if="dialogMode === 'add' && getTypeGroupRange(scope.row.nodeRef, scope.row.detailIndex).startIndex === scope.row.detailIndex" circle type="primary" plain
+        <el-button class="table-btn" v-if="dialogMode === 'add' && scope.row.detailIndex === 0" circle type="primary" plain
          @click="addDetailRow(scope.row.nodeId, scope.row.detailIndex, 'type')">+</el-button>
-        <el-button class="table-btn" v-if="dialogMode === 'add'" circle type="danger" plain
-         :disabled="!canRemoveTypeGroup(scope.row.nodeId, scope.row.detailIndex)"
+        <el-button class="table-btn" v-if="dialogMode === 'add' && canRemoveTypeGroup(scope.row.nodeId, scope.row.detailIndex)" circle type="danger" plain
          @click="removeTypeGroup(scope.row.nodeId, scope.row.detailIndex)">
          -
         </el-button>
@@ -40,10 +39,9 @@
        <div class="cell-editor">
         <el-input v-model="scope.row.detail.exceptionReason" maxlength="15" show-word-limit
          placeholder="最多15字" />
-        <el-button class="table-btn" v-if="dialogMode === 'add'" circle type="primary" plain
+        <el-button class="table-btn" v-if="dialogMode === 'add' && getTypeGroupRange(scope.row.nodeRef, scope.row.detailIndex).startIndex === scope.row.detailIndex" circle type="primary" plain
          @click="addDetailRow(scope.row.nodeId, scope.row.detailIndex, 'reason')">+</el-button>
-        <el-button class="table-btn" v-if="dialogMode === 'add'" circle type="danger" plain
-         :disabled="!canRemoveReasonRow(scope.row.nodeId)"
+        <el-button class="table-btn" v-if="dialogMode === 'add' && canRemoveReasonRow(scope.row.nodeId)" circle type="danger" plain
          @click="removeReasonRow(scope.row.nodeId, scope.row.detailIndex)">
          -
         </el-button>
@@ -190,21 +188,18 @@ const addDetailRow = (nodeId: number, detailIndex: number, flag: string) => {
  const target = editingData.value.find(item => item.id === nodeId);
  if (!target) return;
  if (flag == 'reason') {
-  // 点击异常原因的+，复制上一行的异常类型
+  // 点击异常原因的+，新增到当前异常类型组的末尾
   const prevDetail = target.details[detailIndex];
   if (prevDetail) {
    const { endIndex } = getTypeGroupRange(target, detailIndex);
    const newDetail = createDetail();
    newDetail.exceptionTypeName = prevDetail.exceptionTypeName;
-   // target.details.splice(detailIndex + 1, 0, newDetail);
    newDetail._typeGroupKey = prevDetail._typeGroupKey;
    target.details.splice(endIndex + 1, 0, newDetail)
    return;
   }
  } else {
-  const { endIndex } = getTypeGroupRange(target, detailIndex);
-  target.details.splice(endIndex + 1, 0, createDetail())
-  // target.details.splice(detailIndex + 1, 0, createDetail());
+  target.details.push(createDetail())
  }
 };
 
